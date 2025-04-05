@@ -2,6 +2,12 @@
 
 A modern web application that allows users to upload PDF documents and interact with them through natural language queries using OpenAI's GPT model. Built with Flask and Material Design, this application provides an intuitive interface for extracting information from PDF documents.
 
+## Demo
+
+![PDF Chat Assistant Demo](assets/images/demo.png)
+
+The application provides a clean, intuitive interface for uploading PDFs and asking questions about their content. The AI-powered assistant provides accurate, context-aware responses based on the document content.
+
 ## Features
 
 - 📤 Modern, Material Design interface for PDF uploads
