@@ -1,0 +1,7 @@
+Flask
+PyMuPDF
+PyPDF2
+pdfminer.six
+openai
+pinecone-client
+python-dotenv

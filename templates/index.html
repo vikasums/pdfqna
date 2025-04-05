@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF QnA App</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px; }
+        .file-field input[type=file] { width: 100%; }
+        #answer { margin-top: 20px; padding: 15px; border-left: 4px solid #26a69a; background: #e0f2f1; }
+        .hidden { display: none; }
+        .loader { display: none; margin: 20px 0; text-align: center; }
+        .btn-large { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3 class="center-align">PDF Chat Assistant</h3>
+        <div class="row">
+            <form id="upload-form" class="col s12" enctype="multipart/form-data">
+                <div class="file-field input-field">
+                    <div class="btn">
+                        <span><i class="material-icons left">cloud_upload</i>Upload PDF</span>
+                        <input type="file" name="pdf" accept="application/pdf" required>
+                    </div>
+                    <div class="file-path-wrapper">
+                        <input class="file-path validate" type="text" placeholder="Upload your PDF file">
+                    </div>
+                </div>
+                <button class="btn-large waves-effect waves-light right" type="submit">
+                    <i class="material-icons right">send</i>Process PDF
+                </button>
+            </form>
+        </div>
+        <div id="query-section" class="row hidden">
+            <div class="col s12">
+                <form id="query-form" class="col s12">
+                    <div class="input-field">
+                        <i class="material-icons prefix">question_answer</i>
+                        <input type="text" id="query" class="materialize-textarea" required>
+                        <label for="query">Ask a question about your PDF</label>
+                    </div>
+                    <button class="btn-large waves-effect waves-light" type="button" onclick="submitQuery()">
+                        <i class="material-icons right">send</i>Ask Question
+                    </button>
+                </form>
+            </div>
+            <div class="col s12">
+                <div id="answer" class="hidden"></div>
+            </div>
+        </div>
+        <div class="loader">
+            <div class="progress">
+                <div class="indeterminate"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            M.AutoInit();
+        });
+
+        document.getElementById('upload-form').onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.querySelector('input[type=file]');
+            const loader = document.querySelector('.loader');
+            
+            if (!fileInput.files[0]) {
+                M.toast({html: 'Please select a PDF file first!', classes: 'red'});
+                return;
+            }
+
+            formData.append('file', fileInput.files[0]);
+            loader.style.display = 'block';
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+                document.getElementById('query-section').classList.remove('hidden');
+                M.toast({html: 'PDF uploaded successfully!', classes: 'green'});
+            })
+            .catch(error => {
+                loader.style.display = 'none';
+                M.toast({html: 'Error uploading file', classes: 'red'});
+                console.error('Error:', error);
+            });
+        };
+
+        function submitQuery() {
+            const query = document.getElementById('query').value;
+            const filename = document.querySelector('input[type=file]').files[0].name;
+            const loader = document.querySelector('.loader');
+            const answerDiv = document.getElementById('answer');
+
+            if (!query.trim()) {
+                M.toast({html: 'Please enter a question!', classes: 'red'});
+                return;
+            }
+
+            loader.style.display = 'block';
+            answerDiv.classList.add('hidden');
+
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query, filename }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                loader.style.display = 'none';
+                answerDiv.classList.remove('hidden');
+                answerDiv.innerHTML = `<h5>Answer:</h5><p>${data.answer}</p>`;
+                M.toast({html: 'Response received!', classes: 'green'});
+            })
+            .catch(error => {
+                loader.style.display = 'none';
+                M.toast({html: 'Error getting response', classes: 'red'});
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
