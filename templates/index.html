@@ -7,13 +7,48 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #6200ea;
+            --primary-light: #9d46ff;
+            --primary-dark: #0a00b6;
+            --secondary-color: #ff6e40;
+        }
         body { padding: 20px; background-color: #f5f5f5; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px; }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-top: 20px; 
+        }
         .file-field input[type=file] { width: 100%; }
-        #answer { margin-top: 20px; padding: 15px; border-left: 4px solid #26a69a; background: #e0f2f1; }
+        #answer { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-left: 4px solid var(--primary-color); 
+            background: #f3e5f5; 
+        }
         .hidden { display: none; }
         .loader { display: none; margin: 20px 0; text-align: center; }
         .btn-large { margin: 10px 0; }
+        .btn, .btn-large { 
+            background-color: var(--primary-color) !important; 
+        }
+        .btn:hover, .btn-large:hover { 
+            background-color: var(--primary-light) !important; 
+        }
+        .progress .indeterminate { 
+            background-color: var(--primary-color) !important; 
+        }
+        .input-field .prefix.active { 
+            color: var(--primary-color) !important; 
+        }
+        .file-field .btn { 
+            background-color: var(--secondary-color) !important; 
+        }
+        .file-field .btn:hover { 
+            background-color: #ff9e80 !important; 
+        }
     </style>
 </head>
 <body>
@@ -22,7 +57,7 @@
         <div class="row">
             <form id="upload-form" class="col s12" enctype="multipart/form-data">
                 <div class="file-field input-field">
-                    <div class="btn">
+                    <div class="btn waves-effect waves-light"
                         <span><i class="material-icons left">cloud_upload</i>Upload PDF</span>
                         <input type="file" name="pdf" accept="application/pdf" required>
                     </div>
@@ -30,7 +65,7 @@
                         <input class="file-path validate" type="text" placeholder="Upload your PDF file">
                     </div>
                 </div>
-                <button class="btn-large waves-effect waves-light right" type="submit">
+                <button class="btn-large waves-effect waves-light pulse right" type="submit">
                     <i class="material-icons right">send</i>Process PDF
                 </button>
             </form>
@@ -43,7 +78,7 @@
                         <input type="text" id="query" class="materialize-textarea" required>
                         <label for="query">Ask a question about your PDF</label>
                     </div>
-                    <button class="btn-large waves-effect waves-light" type="button" onclick="submitQuery()">
+                    <button class="btn-large waves-effect waves-light pulse" type="button" onclick="submitQuery()">
                         <i class="material-icons right">send</i>Ask Question
                     </button>
                 </form>
