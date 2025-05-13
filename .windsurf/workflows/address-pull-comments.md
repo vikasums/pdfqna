@@ -1,150 +1,80 @@
-# Pull Comment Workflow
+---
+description: How to effectively address pull request comments
+---
 
-## Overview
-This workflow automates the process of addressing comments on pull requests for the PDF Q&A application. It helps streamline the review process, categorize feedback, and ensure that all comments are properly addressed before merging.
+# Addressing Pull Request Comments
 
-## Triggers
-- New comment added to a pull request
-- Comment edited on a pull request
-- Pull request review submitted
+This workflow provides a step-by-step guide for handling comments on pull requests for the PDF Q&A application.
 
-## Workflow Steps
+## Step 1: Review all comments
 
-### 1. Comment Classification
+1. Open the pull request on GitHub
+2. Read through all comments to understand the feedback
+3. Group comments by type:
+   - Code bugs/issues
+   - Performance improvements
+   - Style/formatting
+   - Documentation needs
 
-```yaml
-name: classify-comments
-description: Categorize incoming pull request comments by type
-inputs:
-  comment_text:
-    description: The text content of the comment
-    required: true
-outputs:
-  category:
-    description: The classified category of the comment
-    values: [code-fix, enhancement, question, documentation, test, design, other]
-  priority:
-    description: The priority level of the comment
-    values: [high, medium, low]
-  requires_action:
-    description: Whether the comment requires action before merging
-    type: boolean
-```
+## Step 2: Create a checklist
 
-### 2. Task Creation
+1. Create a checklist of all items that need to be addressed
+2. Prioritize the list (critical bugs first, style issues last)
+3. Estimate time needed for each item
 
-```yaml
-name: create-tasks
-description: Create actionable tasks from pull request comments
-inputs:
-  comment_id:
-    description: The ID of the comment
-    required: true
-  category:
-    description: The category of the comment
-    required: true
-  priority:
-    description: The priority level of the task
-    required: true
-outputs:
-  task_id:
-    description: The ID of the created task
-  assigned_to:
-    description: The user assigned to the task
-```
+## Step 3: Address code issues
 
-### 3. Comment Response
+1. Check out the branch locally
+   ```bash
+   git checkout pdf-extraction-improvements
+   ```
 
-```yaml
-name: respond-to-comment
-description: Generate and post appropriate responses to pull request comments
-inputs:
-  comment_id:
-    description: The ID of the comment to respond to
-    required: true
-  category:
-    description: The category of the comment
-    required: true
-  task_id:
-    description: The ID of the associated task
-    required: true
-outputs:
-  response_id:
-    description: The ID of the posted response
-```
+2. Make necessary code changes for each item on your checklist
+   ```bash
+   # Example: Improving PDF text extraction
+   # Edit the extract_text_from_pdf function to handle errors better
+   ```
 
-### 4. Progress Tracking
+3. Test your changes thoroughly
+   ```bash
+   # Run the application and test with various PDFs
+   python upload_and_extract.py
+   ```
 
-```yaml
-name: track-comment-resolution
-description: Track the progress of addressing pull request comments
-inputs:
-  pull_request_id:
-    description: The ID of the pull request
-    required: true
-outputs:
-  total_comments:
-    description: Total number of comments on the pull request
-    type: number
-  resolved_comments:
-    description: Number of resolved comments
-    type: number
-  pending_comments:
-    description: Number of pending comments
-    type: number
-  completion_percentage:
-    description: Percentage of comments that have been resolved
-    type: number
-```
+## Step 4: Commit changes with clear messages
 
-## Integration Points
+1. Stage your changes
+   ```bash
+   git add upload_and_extract.py
+   ```
 
-### GitHub Integration
-- Automatically labels pull requests based on comment categories
-- Updates pull request status based on comment resolution progress
-- Prevents merging until all high-priority comments are addressed
+2. Create a descriptive commit message
+   ```bash
+   git commit -m "Fix PDF extraction to handle encrypted documents as requested in PR comments"
+   ```
 
-### Notification System
-- Sends notifications to relevant team members when new comments are added
-- Provides daily summaries of pending comments
-- Alerts on stale comments that haven't been addressed
+## Step 5: Push changes to GitHub
 
-## Usage Examples
+1. Push your changes to the branch
+   ```bash
+   git push origin pdf-extraction-improvements
+   ```
 
-### Example 1: Code Fix Comment
+## Step 6: Respond to comments
 
-When a reviewer comments:
-```
-Fix: The PDF extraction logic doesn't handle encrypted PDFs correctly.
-```
+1. Reply to each comment on GitHub explaining how you addressed it
+2. Use code snippets or screenshots where helpful
+3. Mark comments as resolved when appropriate
 
-The workflow will:
-1. Classify as "code-fix" with "high" priority
-2. Create a task assigned to the PR author
-3. Add a "needs-fix" label to the PR
-4. Prevent merging until resolved
+## Step 7: Request re-review
 
-### Example 2: Enhancement Suggestion
+1. Once all comments are addressed, request a re-review from the original reviewers
+2. Summarize all the changes you made in a comment
 
-When a reviewer comments:
-```
-Suggestion: Consider adding a progress bar during PDF upload for better UX.
-```
+## Tips for effective PR comment handling
 
-The workflow will:
-1. Classify as "enhancement" with "medium" priority
-2. Create a task in the backlog
-3. Add an "enhancement" label to the PR
-4. Allow merging (non-blocking)
-
-## Customization
-
-Team members can customize this workflow by:
-1. Editing the comment classification rules
-2. Adjusting priority levels for different comment types
-3. Modifying the automatic assignment logic
-4. Changing notification preferences
-
-## Maintenance
-
-This workflow should be reviewed and updated quarterly to ensure it remains aligned with the team's evolving processes and needs.
+- Don't be defensive about feedback - it's about improving the code, not criticizing you
+- Ask clarifying questions if a comment is unclear
+- Group related changes in logical commits
+- Test thoroughly before pushing fixes
+- Thank reviewers for their input
