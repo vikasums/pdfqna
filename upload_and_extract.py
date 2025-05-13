@@ -32,13 +32,14 @@ def upload_pdf():
     text = extract_text_from_pdf(filepath)
     return jsonify({'text': text})
 
+# read the file and extract the text. 
 def extract_text_from_pdf(filepath):
-    text = ''
+    extracted_text = ''
     with open(filepath, 'rb') as file:
         reader = PyPDF2.PdfReader(file)
         for page in reader.pages:
-            text += page.extract_text()
-    return text
+            extracted_text += page.extract_text()
+    return extracted_text
 
 @app.route('/query', methods=['POST'])
 def query_pdf():
