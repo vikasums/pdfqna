@@ -34,12 +34,12 @@ def upload_pdf():
 
 # read the file and extract the text. 
 def extract_text_from_pdf(filepath):
-    extracted_text = ''
+    text = ''
     with open(filepath, 'rb') as file:
         reader = PyPDF2.PdfReader(file)
         for page in reader.pages:
-            extracted_text += page.extract_text()
-    return extracted_text
+            text += page.extract_text()
+    return text
 
 @app.route('/query', methods=['POST'])
 def query_pdf():
