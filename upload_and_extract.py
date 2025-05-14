@@ -14,6 +14,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Set your OpenAI API key from environment variable
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
+# Cache to store extracted PDF text
+pdf_text_cache = {}
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
@@ -30,6 +33,10 @@ def upload_pdf():
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
     text = extract_text_from_pdf(filepath)
+    
+    # Store the extracted text in cache
+    pdf_text_cache[file.filename] = text
+    
     return jsonify({'text': text})
 
 # read the file and extract the text. 
@@ -46,11 +53,22 @@ def query_pdf():
     data = request.json
     if 'query' not in data:
         return jsonify({'error': 'No query provided'}), 400
+    if 'filename' not in data:
+        return jsonify({'error': 'No filename provided'}), 400
 
     query = data['query']
-    # Here, you would typically fetch the text from the database or cache
-    # For simplicity, let's assume the text is already extracted and stored in a variable
-    text = extract_text_from_pdf('uploads/' + data['filename'])  # Replace with actual text extraction logic
+    filename = data['filename']
+    
+    # Check if the text is already in cache
+    if filename in pdf_text_cache:
+        text = pdf_text_cache[filename]
+    else:
+        # If not in cache, extract it and store in cache
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'File not found'}), 404
+        text = extract_text_from_pdf(filepath)
+        pdf_text_cache[filename] = text
 
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
