@@ -1,6 +1,6 @@
 Flask
 PyMuPDF
-PyPDF2
+pypdf
 pdfminer.six
 openai
 pinecone-client
