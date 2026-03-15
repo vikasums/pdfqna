@@ -23,7 +23,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -35,24 +35,6 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-
-          # Optional: Customize the trigger phrase (default: @claude)
-          # trigger_phrase: "/claude"
-
-          # Optional: Trigger when specific user is assigned to an issue
-          # assignee_trigger: "claude-bot"
-
-          # Optional: Configure Claude's behavior with CLI arguments
-          # claude_args: |
-          #   --model claude-opus-4-1-20250805
-          #   --max-turns 10
-          #   --allowedTools "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
-          #   --system-prompt "Follow our coding standards. Ensure all new code has tests. Use TypeScript for new files."
-
-          # Optional: Advanced settings configuration
-          # settings: |
-          #   {
-          #     "env": {
-          #       "NODE_ENV": "test"
-          #     }
-          #   }
+          claude_args: |
+            --allowedTools "Bash(pip install *),Bash(pip freeze),Bash(python *),Bash(pytest *),Bash(python -m pytest *),Bash(flake8 *),Bash(pylint *),Bash(black *),Bash(isort *),Bash(mypy *),Bash(git diff *),Bash(git log *),Bash(git status),Bash(git add *),Bash(git commit *),Bash(cat *),Bash(ls *),Bash(find *),Bash(grep *)"
+            --disallowedTools "Bash(rm -rf *),Bash(git push --force *),Bash(git reset --hard *),Bash(curl *),Bash(wget *),Bash(ssh *),Bash(scp *),Bash(sudo *),Bash(chmod 777 *),Bash(pip uninstall *)"
