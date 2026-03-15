@@ -21,6 +21,8 @@ if not openai.api_key:
 
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
 MAX_TOKENS = int(os.getenv('OPENAI_MAX_TOKENS', '500'))
+# ~12k tokens worth of chars; keeps well within gpt-3.5-turbo's 16k context window
+MAX_TEXT_CHARS = int(os.getenv('MAX_TEXT_CHARS', '48000'))
 
 
 def allowed_file(filename):
@@ -49,20 +51,23 @@ def upload_pdf():
         return jsonify({'error': 'Invalid filename'}), 400
 
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
 
     try:
+        # Fix #1: save inside try so cleanup always runs, even on save failure
+        file.save(filepath)
         text = extract_text_from_pdf(filepath)
     except FileNotFoundError:
         return jsonify({'error': 'File not found after upload'}), 404
     except ValueError as e:
         return jsonify({'error': str(e)}), 422
     finally:
-        # Clean up uploaded file — text has been extracted, file is no longer needed
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    # Return extracted text to client; /query accepts text directly (stateless design)
+    # Fix #2: image-only PDFs produce no extractable text — flag it explicitly
+    if not text.strip():
+        return jsonify({'error': 'No text could be extracted from this PDF. It may be image-only.'}), 422
+
     return jsonify({'text': text})
 
 
@@ -93,7 +98,8 @@ def query_pdf():
         return jsonify({'error': 'No text provided — pass the text returned by /upload'}), 400
 
     query = data['query']
-    text = data['text']
+    # Fix #4: truncate text to avoid exceeding the model's context window
+    text = data['text'][:MAX_TEXT_CHARS]
 
     try:
         response = openai.chat.completions.create(
@@ -104,6 +110,9 @@ def query_pdf():
             ],
             max_tokens=MAX_TOKENS
         )
+        # Fix #3: guard against empty choices list
+        if not response.choices:
+            return jsonify({'error': 'No response received from OpenAI'}), 502
         answer = response.choices[0].message.content.strip()
     except openai.AuthenticationError:
         return jsonify({'error': 'Invalid OpenAI API key'}), 401
