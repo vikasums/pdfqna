@@ -45,19 +45,25 @@ def upload_pdf():
         return jsonify({'error': 'Only PDF files are allowed'}), 400
 
     filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({'error': 'Invalid filename'}), 400
+
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
     try:
         text = extract_text_from_pdf(filepath)
+    except FileNotFoundError:
+        return jsonify({'error': 'File not found after upload'}), 404
     except ValueError as e:
         return jsonify({'error': str(e)}), 422
     finally:
-        # Clean up uploaded file after extraction
+        # Clean up uploaded file — text has been extracted, file is no longer needed
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    return jsonify({'text': text, 'filename': filename})
+    # Return extracted text to client; /query accepts text directly (stateless design)
+    return jsonify({'text': text})
 
 
 def extract_text_from_pdf(filepath):
@@ -70,6 +76,8 @@ def extract_text_from_pdf(filepath):
                 if page_text:
                     extracted_text += page_text
         return extracted_text
+    except FileNotFoundError:
+        raise
     except Exception as e:
         raise ValueError(f"Failed to extract text from PDF: {e}") from e
 
@@ -81,17 +89,11 @@ def query_pdf():
         return jsonify({'error': 'Request must be JSON'}), 400
     if 'query' not in data:
         return jsonify({'error': 'No query provided'}), 400
-    if 'filename' not in data:
-        return jsonify({'error': 'No filename provided'}), 400
+    if 'text' not in data:
+        return jsonify({'error': 'No text provided — pass the text returned by /upload'}), 400
 
     query = data['query']
-    filename = secure_filename(data['filename'])
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-
-    try:
-        text = extract_text_from_pdf(filepath)
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 422
+    text = data['text']
 
     try:
         response = openai.chat.completions.create(
